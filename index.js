@@ -1,378 +1,257 @@
-const puppeteer=require("puppeteer");
-const FCM = require('fcm-node')
-const serverKey = "AAAAEW_q8QU:APA91bHH6ba2lZ-Ihw5kKw778yxH0z0Rh3vp9A5zb2iJoYTlong2Id4GuMmtwtPs_hwgczmSnZXg1iSff8sxRErwYaIHGjgEHhq0LR1XB3eSrS6_EzyyCyCMJBLrPGy7yLK11OxkRfz3"
-const fcm = new FCM(serverKey)
+const puppeteer = require('puppeteer')
 const TelegramBot = require('node-telegram-bot-api');
-const token = '6042680252:AAFG_hn6UJsfF5xSn1s39VWVc8yvrKjB2A4';
 if (typeof localStorage === "undefined" || localStorage === null) {
-   var LocalStorage = require('node-localstorage').LocalStorage;
-   localStorage = new LocalStorage('./scratch');
+  var LocalStorage = require('node-localstorage').LocalStorage;
+  localStorage = new LocalStorage('./scratch');
 }
 
 
-const ratebChatID=1631333030;
-const myChatID=1462861733;
+const token = '5990127857:AAG9JsQ06wwXJWK9Jdymp_j5h80cQDYIYOI';
+var newNumbers = []
+var storedNumbers = [];
+let counter = 0;
+
+const ratebChatID = 1631333030;
+const nasser = 1462861733;
+const user=5820914876
+
+const bot = new TelegramBot(token, { polling: true });
 
 
-const bot = new TelegramBot(token, {polling: true});
 bot.onText(/\/echo (.+)/, (msg, match) => {
-  
- 
-   const chatId = msg.chat.id;
-   console.log(chatId);
- 
-   // send back the matched "whatever" to the chat
-   bot.sendMessage(chatId, resp);
- });
+
+
+    const chatId = msg.chat.id;
+    console.log(chatId);
+
+    // send back the matched "whatever" to the chat
+    bot.sendMessage(chatId, resp);
+});
 // messages.
 bot.on('message', (msg) => {
-   const chatId = msg.chat.id;
- console.log(chatId)
-   // send a message to the chat acknowledging receipt of their message
-   bot.sendMessage(chatId, 'Received your message');
- });
-let storedNumbers=[];
-let newNumbers=[];
+    const chatId = msg.chat.id;
+    console.log(chatId)
+    // send a message to the chat acknowledging receipt of their message
+    bot.sendMessage(chatId, 'Received your message');
+});
 
-async function scrapping(){
-   var browser;
-   var page ;
-   
-   try{
-      browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-      page = await browser.newPage();
-          await page.goto('https://www.touch.com.lb/autoforms/portal/touch/onlinereservation', { waitUntil: 'networkidle2', timeout: 0 });
+async function start() {
+    const browser = await puppeteer.launch()
+    const page = await browser.newPage()
+    await page.goto('https://www.touch.com.lb/autoforms/portal/touch/onlinereservation', { waitUntil: 'networkidle2', timeout: 0 });
+    await Promise.all([
+        page.waitForNavigation(),
+ 
+        page.click("#numbers > input[type=button]:nth-child(10)"),
+        page.setViewport({
+            width: 1000,
+            height: 10000,
+            deviceScaleFactor: 1
+        })
 
-   
-         await Promise.all([
-            page.waitForNavigation(),
-            page.click("#numbers > input[type=button]:nth-child(10)"),
-            page.setViewport({
-               width: 1000,
-               height: 10000,
-               deviceScaleFactor: 1
-             })
-           
-          ]);
-   
-           var nums = await page.evaluate(() => { return Array.from(document.querySelectorAll("#available-Numbers > div > select > option")).map(x => x.text)});
-      async function numbersFilter(){
-         if (localStorage.getItem("nums") != null) {
-            storedNumbers = JSON.parse(localStorage.getItem("nums"));
-            
-            for( i of nums){
-               if(!storedNumbers.includes(i)){
-                  newNumbers.push(i);
-                  storedNumbers.push(i)
-   
-               }
+    ]);
+    var nums = await page.evaluate(() => { return Array.from(document.querySelectorAll("#available-Numbers > div > select > option")).map(x => x.text) });
+    async function numbersFilter(){
+      if (localStorage.getItem("nums") != null) {
+         storedNumbers = JSON.parse(localStorage.getItem("nums"));
+         
+         for( i of nums){
+            if(!storedNumbers.includes(i)){
+               newNumbers.push(i);
+               storedNumbers.push(i)
+
             }
-            localStorage.setItem("nums", JSON.stringify(storedNumbers));   
-           }else{
-            newNumbers=nums;
-            storedNumbers=nums;
-            localStorage.setItem("nums", JSON.stringify(storedNumbers));   
-
-   
-           }
-      }
-           await numbersFilter()
-           await browser.close()
-   
-           
-   }catch(e){
-      await browser.close()
-
-
-
-   }
-   
-   
-}
-async function sendNotifications () {
-
-   let c = 0
-   let notBody = "";
-   if (newNumbers.length < 40 && newNumbers.length != 0) {
-      for (let i = 0; i < newNumbers.length; i++) {
-         notBody += newNumbers[i] + " ";
-         if (i % 4 == 0) notBody += "\n";
-      }
-      bot.sendMessage(ratebChatID, notBody);
-
-
-
-   }
-   else {
-      for (let i = 0; i < newNumbers.length; i++) {
-         notBody += newNumbers[i] + " ";
-         if (i % 5 == 0) notBody += "\n";
-
-
-         if (c == 40) {
-            bot.sendMessage(ratebChatID, notBody);
-
-           
-            c = 0;
-            notBody = "";
-
-
          }
-         c++;
-      }
+         localStorage.setItem("nums", JSON.stringify(storedNumbers));   
+        }else{
+         newNumbers=nums;
+         storedNumbers=nums;
+         localStorage.setItem("nums", JSON.stringify(storedNumbers));   
+
+
+        }
    }
+        await numbersFilter()
+    // var dbNumbers = await Number.find();
+    // storedNumbers = [];
+    // for (i in dbNumbers) {
+    //     storedNumbers.push(dbNumbers[i].number);
+    // }
+
+    // const unique1 = scrappedNumbers.filter(x => !storedNumbers.includes(x)); // [1, 2]
+    // const unique2 = storedNumbers.filter(x => !scrappedNumbers.includes(x)); // [6, 7]
+    // // [1, 2, 6, 7]
+    // newNumbers = unique1.concat(unique2);
+    // console.log(newNumbers);
+    // var objNums = [];
+    // for (i in newNumbers) {
+    //     objNums.push({ number: newNumbers[i] })
+    // }
+    // await Number.insertMany(objNums);
+
+
+    await browser.close()
+    if(newNumbers.length>0)
+    await sendNotifications()
+
+
+}
+async function start03() {
+  const browser = await puppeteer.launch()
+  const page = await browser.newPage()
+  await page.goto('https://www.touch.com.lb/autoforms/portal/touch/onlinereservation', { waitUntil: 'networkidle2', timeout: 0 });
+  await Promise.all([
+      page.waitForNavigation(),
+      await page.$eval('#id1', el => el.value = 0),
+      await page.$eval('#num2', el => el.value = 3),
+      page.click("#numbers > input[type=button]:nth-child(10)"),
+      page.setViewport({
+          width: 1000,
+          height: 10000,
+          deviceScaleFactor: 1
+      })
+
+  ]);
+  var nums = await page.evaluate(() => { return Array.from(document.querySelectorAll("#available-Numbers > div > select > option")).map(x => x.text) });
+  async function numbersFilter(){
+    if (localStorage.getItem("nums") != null) {
+       storedNumbers = JSON.parse(localStorage.getItem("nums"));
+       
+       for( i of nums){
+          if(!storedNumbers.includes(i)){
+             newNumbers.push(i);
+             storedNumbers.push(i)
+
+          }
+       }
+       localStorage.setItem("nums", JSON.stringify(storedNumbers));   
+      }else{
+       newNumbers=nums;
+       storedNumbers=nums;
+       localStorage.setItem("nums", JSON.stringify(storedNumbers));   
+
+
+      }
+ }
+      await numbersFilter()
+  // var dbNumbers = await Number.find();
+  // storedNumbers = [];
+  // for (i in dbNumbers) {
+  //     storedNumbers.push(dbNumbers[i].number);
+  // }
+
+  // const unique1 = scrappedNumbers.filter(x => !storedNumbers.includes(x)); // [1, 2]
+  // const unique2 = storedNumbers.filter(x => !scrappedNumbers.includes(x)); // [6, 7]
+  // // [1, 2, 6, 7]
+  // newNumbers = unique1.concat(unique2);
+  // console.log(newNumbers);
+  // var objNums = [];
+  // for (i in newNumbers) {
+  //     objNums.push({ number: newNumbers[i] })
+  // }
+  // await Number.insertMany(objNums);
+
+
+  await browser.close()
+  if(newNumbers.length>0)
+  await sendNotifications()
+
+
+}
+async function sendNotifications() {
+    let c = 0
+    var list=newNumbers;
+  if(newNumbers.length>0){
+    // newNumbers.forEach((ele)=>{
+    //     if(typeof ele==='string'&&ele.length==8)list.push(ele);
+    // })
+    console.log("Telegram")
+    list.sort((a, b) => a - b);
+
+   if(list.length>30){
+    for (let i = 0; i < list.length; i += 30) {
+        const chunk = list.slice(i, i + 30);
+        
+        // Perform an action on the chunk
+        bot.sendMessage(ratebChatID, chunk.join(' '));
+        // bot.sendMessage(me, 'nasser');
+
+    }
+   }
+      
+      // Handle any remaining elements
+      const remaining = list.slice((Math.floor(list.length / 30)) * 30);
+      if (remaining.length > 0) {
+        // Perform an action on the remaining elements
+        bot.sendMessage(ratebChatID, remaining.join(' '));
+
+    }
+  }
+
 
 
 
 
 }
 
-let counter = 1;
-setInterval(() => {
-   scrapping().then(_=>{
-    sendNotifications().then(_=>{
-      console.log("Check Number: "+counter+"\n");
-      console.log("Numbers Sent : "+newNumbers+"\n");
-      console.log("Stored Numbers Length : "+storedNumbers.length+"\n");
-      newNumbers=[];
-
+setInterval(()=>{
+    start().then(()=>{
+       newNumbers=[];
+        storedNumbers=[];
+      start03().then(()=>{
+        newNumbers=[];
+        storedNumbers=[];
+      })
+      
     })
-   })
- 
-
-}, 16000)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// const puppeteer = require('puppeteer');
-// const fs = require("fs/promises");
-// var FCM = require('fcm-node')
-// var serverKey = "AAAAEW_q8QU:APA91bHH6ba2lZ-Ihw5kKw778yxH0z0Rh3vp9A5zb2iJoYTlong2Id4GuMmtwtPs_hwgczmSnZXg1iSff8sxRErwYaIHGjgEHhq0LR1XB3eSrS6_EzyyCyCMJBLrPGy7yLK11OxkRfz3"
-// var fcm = new FCM(serverKey)
-// if (typeof localStorage === "undefined" || localStorage === null) {
-//    var LocalStorage = require('node-localstorage').LocalStorage;
-//    localStorage = new LocalStorage('./scratch');
-// }
-// let nums = [];
-// let whatsappNums = [];
-// let storedNums = [];
-// let getNumbers = async () => {
-//    const browser = await puppeteer.launch();
-//    const page = await browser.newPage();
-
-//    try{
-//       nums=[];
-//       whatsappNums=[];
-//       storedNums=[]
-
-//       await page.goto('https://www.touch.com.lb/autoforms/portal/touch/onlinereservation', { waitUntil: 'networkidle2', timeout: 0 });
-
-//       await page.click("#numbers > input[type=button]:nth-child(10)"),
-//       page.setViewport({
-//          width: 1000,
-//          height: 10000,
-//          deviceScaleFactor: 1
-//        });
-//          await page.waitForNavigation(),
-   
-//          nums = await page.evaluate(() => {
-//             return Array.from(document.querySelectorAll("#available-Numbers > div > select > option")).map(x => x.text);
-//          })
-//       if (localStorage.getItem("nums") != null) {
-//          storedNums = JSON.parse(localStorage.getItem("nums"));
-   
-//          for (let i = 0; i < nums.length; i++) {
-//             if (!storedNums.includes(nums[i])) { whatsappNums.push(nums[i]); storedNums.push(nums[i]) }
-//          }
-   
-//          localStorage.setItem("nums", JSON.stringify(storedNums));
-//       } else {
-//          whatsappNums = nums;
-//          localStorage.setItem("nums", JSON.stringify(nums));
-   
-//       }
-   
-   
-//       await browser.close();
-//       return new Promise(function (resolve) {
-//          setTimeout(resolve, 1);
-//       });
-//    }catch(e){
-//       console.log;
-//       await browser.close();
-//       return new Promise(function (resolve) {
-//          setTimeout(resolve, 1);
-//       });
-//    }
-
- 
-
-
-
-
-// }
-
-// let x = 0;
-// setInterval(() => {
-//    try{
-
-//       getNumbers().then(() => {
-//          if (whatsappNums.length != 0){
-//             sendNote();
-//             console.log("sent nums "+whatsappNums + "\n\n")
-//             whatsappNums=[];
-
-//          }
-
-//          console.log("counter "+x++ + "\n"+"Stored Numbers Length "+storedNums.length+"\n");
-//          storedNums=[];
-//          nums=[];
-//          whatsappNums=[];
-   
-//       })
-   
-//    }catch(e){
-
-//    }
-
-// }, 25000)
-
-// let sendNote = ()=> {
-
-//    let c = 0
-//    let notBody = "";
-//    if (whatsappNums.length < 40 && whatsappNums.length != 0) {
-//       for (let i = 0; i < whatsappNums.length; i++) {
-//          notBody += whatsappNums[i] + " ";
-//          if (i % 4 == 0) notBody += "\n";
-//       }
-//       var message = {
-//          // to: 'cdi2pFxpRJK1IHLS1z88hP:APA91bHLhqoMmpIFG8D6TJN-5kRlj1iXYRtGw3zS8Wp0FyVXWTWy8bYXk8D4M_VPMIG8UphZdP4PO7T8GRhVdiVwiq1cE7yyp4v16OziJA3YBZX2xey8FjruJf3MMHcnX-JhlCuaLrRR',         
-//          to: 'eP5FhlLbQ_Sg4pe7U_9-DW:APA91bGhyhx5W2cXub2CoYYPpLMPGt7tgJ1QBUPkRVGkkGL5f17DnONIMp03Md5RBjdGNE-JRpNwiEdJjheIclkyzNtQKuKEXXdvuJEkOm0p4a6eKog4d0nU2Z2ZqpZrPjTqqsNvO7Td',
-//          collapse_key: 'your_collapse_key',
-//          notification: {
-//             title: "Touch",
-//             body: notBody
-//          },
-//          data: {
-//             my_key: 'my value',
-//             my_another_key: 'my another value'
-//          }
-//       }
-//       fcm.send(message, (err, response) => {
-//          if (err) {
-//             console.log("Something has gone wrong!")
-//          } else {
-//             console.log("Successfully sent with response: ", response)
-//          }
-//       })
-
-
-//    }
-//    else {
-//       for (let i = 0; i < whatsappNums.length; i++) {
-//          notBody += whatsappNums[i] + " ";
-//          if (i % 5 == 0) notBody += "\n";
-
-
-//          if (c == 40) {
-//             var message = {
-//                // to: 'cdi2pFxpRJK1IHLS1z88hP:APA91bHLhqoMmpIFG8D6TJN-5kRlj1iXYRtGw3zS8Wp0FyVXWTWy8bYXk8D4M_VPMIG8UphZdP4PO7T8GRhVdiVwiq1cE7yyp4v16OziJA3YBZX2xey8FjruJf3MMHcnX-JhlCuaLrRR',         
-//                to: 'eP5FhlLbQ_Sg4pe7U_9-DW:APA91bGhyhx5W2cXub2CoYYPpLMPGt7tgJ1QBUPkRVGkkGL5f17DnONIMp03Md5RBjdGNE-JRpNwiEdJjheIclkyzNtQKuKEXXdvuJEkOm0p4a6eKog4d0nU2Z2ZqpZrPjTqqsNvO7Td',
-//                collapse_key: 'your_collapse_key',
-//                notification: {
-//                   title: "Touch",
-//                   body: notBody
-//                },
-//                data: {
-//                   my_key: 'my value',
-//                   my_another_key: 'my another value'
-//                }
-//             }
-//             fcm.send(message, (err, response) => {
-//                if (err) {
-//                   console.log("Something has gone wrong!")
-//                } else {
-//                   console.log("Successfully sent with response: ", response)
-//                }
-//             })
-//             c = 0;
-//             notBody = "";
-
-
-//          }
-//          c++;
-//       }
-//    }
-
-
-
-
-// }
+}, 28 * 1000);
+
+
+
+    // setInterval(()=>{
+    //     start().then(_=>{
+    //         sendNotifications().then(_=>{
+    //             console.log("Check Number: "+counter+"\n");
+    //             console.log("Numbers Sent : "+newNumbers+"\n");
+    //             console.log("Stored Numbers Length : "+storedNumbers.length+"\n");
+    //             newNumbers=[];
+    //             storedNumbers=[]
+    //             counter++;
+
+    //           })
+    //     },17000)
+    // })
+
+function rearrangeNumbers(numbers) {
+  // Convert the numbers to an array of strings
+  const nums = numbers.map(Number);
+
+  // Sort the numbers in ascending order
+  nums.sort((a, b) => a - b);
+
+  // Initialize variables
+  let prevNum = nums[0];
+  let currGroup = [prevNum];
+  let groups = [currGroup];
+
+  // Group the numbers based on proximity to each other
+  for (let i = 1; i < nums.length; i++) {
+    const currNum = nums[i];
+    const diff = currNum - prevNum;
+
+    if (diff <= 1) {
+      currGroup.push(currNum);
+    } else {
+      currGroup = [currNum];
+      groups.push(currGroup);
+    }
+
+    prevNum = currNum;
+  }
+
+  // Flatten the groups into a single array
+  const result = groups.reduce((acc, group) => acc.concat(group), []);
+
+  // Return the rearranged numbers as a string
+  return result
+}
