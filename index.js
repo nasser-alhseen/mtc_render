@@ -6,7 +6,7 @@ if (typeof localStorage === "undefined" || localStorage === null) {
 }
 
 
-const token = '5990127857:AAG9JsQ06wwXJWK9Jdymp_j5h80cQDYIYOI';
+const token = '6582823602:AAFN1N_aI0uXKobKXre1-MptWlSKRo8D8no';
 var newNumbers = []
 var storedNumbers = [];
 let counter = 0;
@@ -36,7 +36,7 @@ bot.on('message', (msg) => {
 });
 
 async function start() {
-  const browser = await puppeteer.launch()
+  const browser = await puppeteer.launch({headless:false})
   const page = await browser.newPage()
   await page.goto('https://www.touch.com.lb/autoforms/portal/touch/onlinereservation', { waitUntil: 'networkidle2', timeout: 0 });
   await Promise.all([
@@ -86,7 +86,7 @@ async function start03() {
   await Promise.all([
     page.waitForNavigation(),
     await page.$eval('#id1', el => el.value = 0),
-    await page.$eval('#num2', el => el.value = 3),
+    // await page.$eval('#num2', el => el.value = 3),
     page.click("#numbers > input[type=button]:nth-child(10)"),
     page.setViewport({
       width: 1000,
@@ -120,7 +120,10 @@ async function start03() {
 
   await browser.close()
   if (newNumbers.length > 0)
+  {
     await sendNotifications()
+
+  }
 
 
 }
@@ -156,15 +159,16 @@ async function sendNotifications() {
 }
 
 setInterval(() => {
-  start().then(() => {
+  start03().then(() => {
     newNumbers = [];
     storedNumbers = [];
-    start03().then(() => {
-      newNumbers = [];
-      storedNumbers = [];
-    })
-
   })
+  // start().then(() => {
+  //   newNumbers = [];
+  //   storedNumbers = [];
+  
+
+  // })
 }, 28 * 1000);
 
 
